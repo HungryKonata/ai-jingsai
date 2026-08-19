@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>部门常见问题知识库</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- 自定义样式 -->
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- 顶部导航 -->
+  <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <!-- Logo和标题 -->
+        <div class="flex items-center cursor-pointer" onclick="navigateTo('home')">
+          <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-book-open text-white text-lg"></i>
+          </div>
+          <div class="ml-3">
+            <h1 class="text-xl font-bold text-gray-800">部门知识库</h1>
+            <p class="text-xs text-gray-500">Department Knowledge Base</p>
+          </div>
+        </div>
+        
+        <!-- 导航菜单 -->
+        <div class="flex items-center space-x-1">
+          <button onclick="navigateTo('home')" id="nav-home" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition">
+            <i class="fas fa-question-circle mr-2"></i>智能问答
+          </button>
+          <button onclick="navigateTo('list')" id="nav-list" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition">
+            <i class="fas fa-list mr-2"></i>知识列表
+          </button>
+          <button onclick="navigateTo('admin')" id="nav-admin" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition">
+            <i class="fas fa-cog mr-2"></i>条目管理
+          </button>
+          <button onclick="navigateTo('settings')" id="nav-settings" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition">
+            <i class="fas fa-robot mr-2"></i>AI配置
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- 首页/问答页面 -->
+    <div id="page-home" class="page">
+      <!-- 欢迎区域 -->
+      <div class="text-center py-8 mb-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">您好，有什么可以帮助您的？</h2>
+        <p class="text-gray-500">输入您的问题，系统将在知识库中搜索答案，或由AI为您生成解答</p>
+      </div>
+      
+      <!-- 搜索框 -->
+      <div class="max-w-3xl mx-auto mb-8">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="例如：如何申请报销？年假有多少天？" 
+            class="w-full px-6 py-4 pr-32 text-lg border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition outline-none"
+            onkeypress="if(event.key === 'Enter') handleSearch()"
+          >
+          <button 
+            onclick="handleSearch()" 
+            class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition font-medium"
+          >
+            <i class="fas fa-paper-plane mr-2"></i>提问
+          </button>
+        </div>
+        
+        <!-- 热门问题 -->
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="text-sm text-gray-500 mr-2">热门问题：</span>
+          <button onclick="quickAsk('如何申请差旅报销？')" class="hot-question text-sm px-3 py-1 bg-white rounded-full border hover:bg-blue-50 hover:border-blue-300 transition">
+            如何申请差旅报销？
+          </button>
+          <button onclick="quickAsk('年假有多少天？')" class="hot-question text-sm px-3 py-1 bg-white rounded-full border hover:bg-blue-50 hover:border-blue-300 transition">
+            年假有多少天？
+          </button>
+          <button onclick="quickAsk('VPN如何连接？')" class="hot-question text-sm px-3 py-1 bg-white rounded-full border hover:bg-blue-50 hover:border-blue-300 transition">
+            VPN如何连接？
+          </button>
+          <button onclick="quickAsk('公司上下班时间？')" class="hot-question text-sm px-3 py-1 bg-white rounded-full border hover:bg-blue-50 hover:border-blue-300 transition">
+            公司上下班时间？
+          </button>
+        </div>
+      </div>
+      
+      <!-- 结果展示区 -->
+      <div id="result-area" class="max-w-3xl mx-auto hidden">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <!-- 结果头部 -->
+          <div class="px-6 py-4 border-b bg-gray-50">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span id="result-source-badge" class="badge badge-source">
+                  <i class="fas fa-database mr-1"></i>
+                  <span id="result-source-text">知识库</span>
+                </span>
+                <span id="result-confidence" class="badge badge-confidence hidden"></span>
+              </div>
+              <button onclick="closeResult()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <p id="result-note" class="text-sm text-gray-500 mt-2"></p>
+          </div>
+          
+          <!-- 问题 -->
+          <div class="px-6 py-3 bg-blue-50">
+            <p class="text-sm text-gray-600"><strong>您的问题：</strong><span id="result-question"></span></p>
+          </div>
+          
+          <!-- 答案 -->
+          <div class="px-6 py-6">
+            <div class="prose max-w-none">
+              <div id="result-answer" class="text-gray-800 whitespace-pre-line leading-relaxed"></div>
+            </div>
+          </div>
+          
+          <!-- 跨文档参考结果（综合召回） -->
+          <div id="related-results" class="px-6 py-4 border-t bg-blue-50 hidden"></div>
+          
+          <!-- 相似问题 -->
+          <div id="similar-questions" class="px-6 py-4 border-t bg-gray-50 hidden">
+            <p class="text-sm font-medium text-gray-700 mb-2"><i class="fas fa-lightbulb text-yellow-500 mr-1"></i>您可能还想问：</p>
+            <div id="similar-list" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 加载状态 -->
+      <div id="loading-area" class="max-w-3xl mx-auto hidden">
+        <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+            <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+          </div>
+          <p class="text-gray-600">正在搜索答案...</p>
+        </div>
+      </div>
+      
+      <!-- 统计卡片 -->
+      <div class="max-w-3xl mx-auto mt-8">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-book text-blue-500"></i>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800" id="stat-total">0</p>
+                <p class="text-xs text-gray-500">知识条目</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-500"></i>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800" id="stat-hits">0</p>
+                <p class="text-xs text-gray-500">知识库命中</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-robot text-purple-500"></i>
+              </div>
+              <div>
+                <p class="text-2xl font-bold text-gray-800" id="stat-ai">0</p>
+                <p class="text-xs text-gray-500">AI兜底</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 知识列表页面 -->
+    <div id="page-list" class="page hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">知识条目列表</h2>
+        <div class="flex gap-2">
+          <button onclick="exportData()" class="px-4 py-2 bg-white border rounded-lg hover:bg-gray-50 text-sm">
+            <i class="fas fa-download mr-1"></i>导出
+          </button>
+        </div>
+      </div>
+      
+      <!-- 筛选器 -->
+      <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex-1 min-w-64">
+            <div class="relative">
+              <input 
+                type="text" 
+                id="list-search" 
+                placeholder="搜索知识条目..." 
+                class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                oninput="debounceSearch()"
+              >
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+          </div>
+          <select id="list-category" onchange="loadKnowledgeList()" class="px-4 py-2 border rounded-lg">
+            <option value="">全部分类</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- 知识列表 -->
+      <div id="knowledge-list" class="grid gap-4"></div>
+      
+      <!-- 分页 -->
+      <div id="pagination" class="flex justify-center items-center gap-2 mt-6"></div>
+    </div>
+
+    <!-- 条目管理页面 -->
+    <div id="page-admin" class="page hidden">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">条目管理</h2>
+        <div class="flex gap-2">
+          <button onclick="openKnowledgeModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+            <i class="fas fa-plus mr-1"></i>新增条目
+          </button>
+          <label class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm cursor-pointer">
+            <i class="fas fa-upload mr-1"></i>导入文件
+            <input type="file" accept=".md,.txt,.markdown" onchange="handleFileUpload(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+      
+      <!-- 管理列表 -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+              <tr class="text-left text-sm text-gray-600">
+                <th class="px-4 py-3 font-medium">问题</th>
+                <th class="px-4 py-3 font-medium">分类</th>
+                <th class="px-4 py-3 font-medium">更新时间</th>
+                <th class="px-4 py-3 font-medium">状态</th>
+                <th class="px-4 py-3 font-medium">操作</th>
+              </tr>
+            </thead>
+            <tbody id="admin-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI配置页面 -->
+    <div id="page-settings" class="page hidden">
+      <div class="max-w-2xl mx-auto">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">AI服务配置</h2>
+        
+        <!-- 配置表单 -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <div class="mb-6">
+            <label class="flex items-center gap-3">
+              <input type="checkbox" id="ai-enabled" class="w-5 h-5 rounded text-blue-600">
+              <span class="text-gray-700 font-medium">启用AI服务</span>
+            </label>
+            <p class="text-sm text-gray-500 mt-1">启用后，知识库无匹配时将调用AI生成回答</p>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">AI服务提供商</label>
+              <select id="ai-provider" onchange="updateProviderOptions()" class="w-full px-4 py-2 border rounded-lg">
+                <option value="mock">模拟模式（无需配置）</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="doubao">豆包（字节跳动）</option>
+                <option value="qwen">通义千问（阿里云）</option>
+              </select>
+            </div>
+            
+            <div id="ai-config-details" class="space-y-4 hidden">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <input type="password" id="ai-api-key" placeholder="请输入API Key" class="w-full px-4 py-2 border rounded-lg">
+                <p class="text-xs text-gray-400 mt-1">您的API Key将被安全存储，不会泄露给第三方</p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">API Base URL（可选）</label>
+                <input type="text" id="ai-base-url" placeholder="使用默认地址请留空" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">模型名称</label>
+                <input type="text" id="ai-model" placeholder="如 deepseek-chat" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-6 flex gap-3">
+            <button onclick="saveAIConfig()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <i class="fas fa-save mr-1"></i>保存配置
+            </button>
+            <button onclick="testAIConnection()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              <i class="fas fa-plug mr-1"></i>测试连接
+            </button>
+          </div>
+          
+          <div id="test-result" class="mt-4"></div>
+        </div>
+        
+        <!-- 说明 -->
+        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+          <h4 class="font-medium text-blue-800 mb-2"><i class="fas fa-info-circle mr-1"></i>使用说明</h4>
+          <ul class="text-sm text-blue-700 space-y-1">
+            <li>• 模拟模式：无需配置，系统将根据问题关键词智能生成回答</li>
+            <li>• 真实AI：需申请对应平台的API Key，支持主流大模型</li>
+            <li>• AI服务不可用时，系统将自动降级为模拟模式</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 知识条目弹窗 -->
+  <div id="knowledge-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+        <h3 class="text-lg font-bold" id="modal-title">新增知识条目</h3>
+        <button onclick="closeKnowledgeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">问题 <span class="text-red-500">*</span></label>
+          <input type="text" id="modal-question" placeholder="请输入问题" class="w-full px-4 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">答案 <span class="text-red-500">*</span></label>
+          <textarea id="modal-answer" rows="6" placeholder="请输入答案内容..." class="w-full px-4 py-2 border rounded-lg"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+          <select id="modal-category" class="w-full px-4 py-2 border rounded-lg"></select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">关键词（用逗号分隔）</label>
+          <input type="text" id="modal-keywords" placeholder="如：报销, 发票, 差旅费" class="w-full px-4 py-2 border rounded-lg">
+        </div>
+      </div>
+      <div class="border-t px-6 py-4 flex justify-end gap-3">
+        <button onclick="closeKnowledgeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">取消</button>
+        <button onclick="saveKnowledgeItem()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast提示 -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+    <div class="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-2">
+      <i id="toast-icon" class="fas fa-check-circle text-green-400"></i>
+      <span id="toast-message">操作成功</span>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
